@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+
+<body>
+    <h1>Questionaire!</h1>
+
+    <div id="app" class="container">
+
+        <form @submit.prevent="updateBooking()">
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Student</label>
+                <select name="Student" class="form-select" aria-label="Default select example"
+                    onchange="teamSelected(this.value)">
+                    <option selected>Open this select menu</option>
+                    <option value="Department">Department</option>
+                    <option value="Locations">Location</option>
+                    <option value="Major">Major</option>
+                </select>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">data</label>
+                <select name="data" class="form-select" aria-label="Default select example" id="data" disabled>
+                </select>
+                   
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+
+        createApp({
+            data() {
+                return {
+                    // message: 'Hello Vue!'
+                    booking: {},
+                    id: new URLSearchParams(window.location.search).get("id"),
+                    heroes: []
+                }
+            },
+            methods: {
+                updateBooking: async function () {
+
+                    // event.preventDefault();
+                    delete this.booking._id;
+
+                    var response = await fetch("/api/bookings/" + this.id, {
+                        method: "put",
+                        headers: {
+                            // 'Content-Type': 'application/x-www-form-urlencoded',
+                            'Content-Type': 'application/json'
+                        },
+
+                        // body: new URLSearchParams(new FormData(event.target))
+                        body: JSON.stringify(this.booking)
+                    });
+
+                    if (response.ok) {
+
+                        var text = await response.text();
+                        alert(text);
+                        location.assign("/bookings")
+                    } else {
+                        alert(response.statusText)
+                    }
+
+                },
+                deleteBooking: async function () {
+                    var r = confirm("Confirm Delete?");
+
+                    if (r) {
+
+                        var response = await fetch("/api/bookings/" + this.id, {
+                            method: "delete",
+                        });
+
+                        if (response.ok) {
+                            alert("booking deleted");
+                            location.assign("/bookings")
+                        } else {
+                            alert(response.statusText)
+                        }
+                    } else {
+                        alert("cancelled");
+                    }
+
+                },
+                teamSelected: function (resetHero) {
+
+
+                    if (this.booking.Location == "Leave") {
+                        this.heroes = ["Hongkong Island", "Kowloon", "Kowloon"]
+                    } else if (this.booking.Departments == "Department") {
+                        this.heroes = ["DAAI", "ITM", "Mechanical Engineering"];
+                    } else {
+                        this.heroes = []
+                    }
+                }
+            },
+            mounted: async function () {
+
+                var response = await fetch("/api/bookings/" + this.id);
+
+                if (response.ok) {
+                    this.booking = await response.json();
+
+                    if (this.booking.terms) this.booking.terms = true;
+                    this.teamSelected(false)
+                }
+            },
+        }).mount('#app')
+    </script>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
